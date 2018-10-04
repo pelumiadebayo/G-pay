@@ -23,10 +23,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Objects;
-
-import static android.R.attr.cacheColorHint;
-import static android.R.attr.id;
 
 public class WalletDetails extends AppCompatActivity {
     private Spinner mProductSpinner;
