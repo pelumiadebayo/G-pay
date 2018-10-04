@@ -34,7 +34,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/white"
+            android:background="@drawable/rounded_corner"
             android:text="Today"
             android:layout_marginTop="-16dp"/>
 
@@ -42,6 +42,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/white"
+            android:gravity="center"
             android:id="@+id/today"/>
 
 </android.support.v7.widget.CardView>
@@ -62,7 +63,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/white"
+            android:background="@drawable/rounded_corner"
             android:text="Monthly"
             android:layout_marginTop="-16dp"/>
 
@@ -70,6 +71,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:gravity="center"
             android:background="@color/white"
             android:id="@+id/monthly"/>
 

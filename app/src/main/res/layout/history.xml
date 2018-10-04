@@ -16,12 +16,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:id="@+id/name_list"/>
+        android:id="@+id/name_list"
+        android:gravity="center"
+        tools:text="Name"/>
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:id="@+id/date_list" />
+        android:id="@+id/date_list"
+        android:gravity="center"/>
 
 
 </LinearLayout>
