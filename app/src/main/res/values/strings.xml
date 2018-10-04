@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Gpay</string>
+    <string name="electricity">Electricity</string>
+    <string name="telecommunication">Telecommunication</string>
+</resources>
