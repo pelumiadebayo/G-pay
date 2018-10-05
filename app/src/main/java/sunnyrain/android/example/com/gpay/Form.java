@@ -68,7 +68,7 @@ public class Form extends AppCompatActivity {
         }
         getOperatorId();
 
-        historyAdapter = new ArrayAdapter<JsonObject>(this, 0){
+        historyAdapter = new ArrayAdapter<JSONObject>(this, 0){
             @NonNull
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
@@ -78,38 +78,44 @@ public class Form extends AppCompatActivity {
                 if (position >= getCount())
                     load();
 
-                // grab the history
-                JsonObject data = getItem(position);
-                JsonObject bearerHistory = data.getAsJsonObject("data");
-                if (bearerHistory != null)
-                    data = bearerHistory;
+                JSONObject data = getItem(position);
+                JSONArray transactionInfo = null;
+                try {
+                    transactionInfo = data.getJSONArray(DATA);
+                } catch (JSONException e) {
 
-                // grab the user info... name, date of transaction
-                JsonObject bearerName = data.getAsJsonObject("name");
-                String date = bearerName.get("date").getAsString();
+                }
+                for (int i = 0; i < transactionInfo.length(); i++) {
+                    try {
+                        JSONObject infoObject = transactionInfo.getJSONObject(i);
+                        String name = infoObject.getString(NAME);
+                        String amount = infoObject.getString(TRANS_AMOUNT);
+                        String date = infoObject.getString(TRANS_DATE);
 
+                        // and finally, set the name and date
+                        TextView dateCreated = (TextView)convertView.findViewById(R.id.date_list);
+                        dateCreated.setText(date);
 
-                // and finally, set the name and date
-                TextView dateCreated = (TextView)convertView.findViewById(R.id.date_list);
-                dateCreated.setText(date);
+                        TextView text = (TextView)convertView.findViewById(R.id.name_list);
+                        text.setText(name);
 
-                TextView text = (TextView)convertView.findViewById(R.id.name_list);
-                text.setText(bearerName.get("text").getAsString());
+                        TextView amt = (TextView)convertView.findViewById(R.id.name_list);
+                        amt.setText(amount);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
 
+                // basic setup of the ListView and adapter
+                setContentView(R.layout.history_list);
+                ListView listView = (ListView)findViewById(R.id.list);
+                listView.setAdapter(historyAdapter);
+                // authenticate and do the first load
+                load();
 
-                TextView amount = (TextView)convertView.findViewById(R.id.name_list);
-                amount.setText(bearerName.get("amount").getAsString());
-                return convertView;
             }
-        };
 
-        // basic setup of the ListView and adapter
-        setContentView(R.layout.history_list);
-        ListView listView = (ListView)findViewById(R.id.list);
-        listView.setAdapter(historyAdapter);
-
-        // authenticate and do the first load
-        load();
+    };
     }
 
     private void getOperatorId(){
@@ -185,19 +191,6 @@ public class Form extends AppCompatActivity {
                         return;
                     }
                     historyAdapter.add(result.getAsJsonObject());
-
-                    try {
-                        transactionInfo = new JSONObject(String.valueOf(result));
-                        JSONArray data = transactionInfo.getJSONArray(DATA);
-                        for (int i = 0; i < data.length(); i++) {
-                            JSONObject infoObject =  data.getJSONObject(i);
-                            transactionName.add(infoObject.getString(NAME));
-                            transactionAmount.add(infoObject.getString(TRANS_AMOUNT));
-                            transactionDate.add(infoObject.getString(TRANS_DATE));
-                        }
-                    } catch (JSONException el) {
-                        el.printStackTrace();
-                    }
                 }
             });
     }
