@@ -20,12 +20,43 @@ import com.google.gson.JsonObject;
 import com.koushikdutta.async.future.Future;
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
+import com.jaredrummler.materialspinner.MaterialSpinner;
+
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import static android.R.attr.data;
+import static android.R.attr.handle;
+import static android.R.attr.id;
+import static android.R.attr.name;
+import static sunnyrain.android.example.com.gpay.R.id.spinner;
+import static sunnyrain.android.example.com.gpay.R.string.electricity;
 
 public class Form extends AppCompatActivity {
     ArrayAdapter<JsonObject> historyAdapter;
+    Future<JsonArray> loading;
     String accessToken;
+    String operationId;
+    JSONObject operation;
+    JSONObject transactionInfo;
+
+    final String DATA = "data";
+    final String ID = "id";
+    final String NAME = "name";
+    final String TRANS_AMOUNT = "amount";
+    final String TRANS_DATE = "created";
+
+    ArrayList<String> opId = new ArrayList<String>();
+    ArrayList<String> idName = new ArrayList<String>();
+    ArrayList<String> transactionName = new ArrayList<String>();
+    ArrayList<String> transactionAmount = new ArrayList<String>();
+    ArrayList<String> transactionDate = new ArrayList<String>();
 
 
     @Override
@@ -35,8 +66,9 @@ public class Form extends AppCompatActivity {
         if (extras != null) {
             accessToken = extras.getString("accessToken");
         }
-        historyAdapter = new ArrayAdapter<JsonObject>(this, 0){
+        getOperatorId();
 
+        historyAdapter = new ArrayAdapter<JsonObject>(this, 0){
             @NonNull
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
@@ -58,11 +90,15 @@ public class Form extends AppCompatActivity {
 
 
                 // and finally, set the name and date
-                TextView handle = (TextView)convertView.findViewById(R.id.date_list);
-                handle.setText(date);
+                TextView dateCreated = (TextView)convertView.findViewById(R.id.date_list);
+                dateCreated.setText(date);
 
                 TextView text = (TextView)convertView.findViewById(R.id.name_list);
                 text.setText(bearerName.get("text").getAsString());
+
+
+                TextView amount = (TextView)convertView.findViewById(R.id.name_list);
+                amount.setText(bearerName.get("amount").getAsString());
                 return convertView;
             }
         };
@@ -73,16 +109,63 @@ public class Form extends AppCompatActivity {
         listView.setAdapter(historyAdapter);
 
         // authenticate and do the first load
-
+        load();
     }
 
-    Future<JsonArray> loading;
+    private void getOperatorId(){
+        String url = "http://104.131.174.54:2673/api/v2.0/electricity/operators" ;
+        // don't attempt to load more if a load is already in progress
+        if (loading != null && !loading.isDone() && !loading.isCancelled())
+            return;
+
+        // This request loads a URL as JsonArray and invokes a callback on completion.
+        loading = Ion.with(this)
+                .load(url)
+                .setHeader("Authorization", "Bearer " + accessToken)
+                .asJsonArray()
+                .setCallback(new FutureCallback<JsonArray>() {
+                    @Override
+                    public void onCompleted(Exception e, JsonArray result) {
+                        try {
+                            operation = new JSONObject(String.valueOf(result));
+                        } catch (Exception el) {
+                            el.printStackTrace();
+                        }
+                    }
+                });
+        try {
+            JSONArray data = operation.getJSONArray(DATA);
+            for (int i = 0; i < data.length(); i++) {
+                JSONObject operationObject =  data.getJSONObject(i);
+                opId.add(operationObject.getString(ID));
+                idName.add(operationObject.getString(NAME));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     private void load() {
         EditText acctNumber = (EditText) findViewById(R.id.AccountNumber);
-        String id = acctNumber.getText().toString();
+        String uId = acctNumber.getText().toString();
 
-        String url = "http://104.131.174.54:2673/api/v2.0/electricity/payments?unique_id" + id;
+        final MaterialSpinner spinner = (MaterialSpinner) findViewById(R.id.spinner);
+        spinner.setItems(idName);
+        spinner.setOnItemSelectedListener(new MaterialSpinner.OnItemSelectedListener<String>() {
+            @Override public void onItemSelected(MaterialSpinner view, int position, long id, String item) {
+                operationId = opId.get(position);
+            }
+        });
+        spinner.setOnNothingSelectedListener(new MaterialSpinner.OnNothingSelectedListener() {
+            @Override
+            public void onNothingSelected(MaterialSpinner spinner) {
+                return;
+            }
+        });
+
+        String url = "http://104.131.174.54:2673/api/v2.0/electricity/payments?unique_id="
+                + uId + "&" + "operator_id=" + operationId;
 
         // don't attempt to load more if a load is already in progress
         if (loading != null && !loading.isDone() && !loading.isCancelled())
@@ -91,7 +174,6 @@ public class Form extends AppCompatActivity {
         // This request loads a URL as JsonArray and invokes a callback on completion.
          loading = Ion.with(this)
             .load(url)
-
             .setHeader("Authorization", "Bearer " +accessToken)
             .asJsonArray()
             .setCallback(new FutureCallback<JsonArray>() {
@@ -102,8 +184,19 @@ public class Form extends AppCompatActivity {
                         Toast.makeText(Form.this, "Error loading history", Toast.LENGTH_LONG).show();
                         return;
                     }
-                    for (int i = 0; i < result.size(); i++) {
-                        historyAdapter.add(result.get(i).getAsJsonObject());
+                    historyAdapter.add(result.getAsJsonObject());
+
+                    try {
+                        transactionInfo = new JSONObject(String.valueOf(result));
+                        JSONArray data = transactionInfo.getJSONArray(DATA);
+                        for (int i = 0; i < data.length(); i++) {
+                            JSONObject infoObject =  data.getJSONObject(i);
+                            transactionName.add(infoObject.getString(NAME));
+                            transactionAmount.add(infoObject.getString(TRANS_AMOUNT));
+                            transactionDate.add(infoObject.getString(TRANS_DATE));
+                        }
+                    } catch (JSONException el) {
+                        el.printStackTrace();
                     }
                 }
             });

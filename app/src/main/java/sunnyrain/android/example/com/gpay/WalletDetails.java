@@ -26,8 +26,7 @@ import org.json.JSONObject;
 
 public class WalletDetails extends AppCompatActivity {
     private Spinner mProductSpinner;
-    JSONObject telecommunications;
-    JSONObject electricity;
+    JSONObject electricity, telecommunications;
 
     final String DATA = "data";
     final String PAYMENT = "payments";
@@ -115,7 +114,7 @@ public class WalletDetails extends AppCompatActivity {
             e.printStackTrace();
         }
         TextView electricityWalletToday =(TextView) findViewById(R.id.today);
-        TextView electricityWalletMonthly =(TextView) findViewById(R.id.monthly);
+        TextView electricityWalletMonthly =(TextView) findViewById(R.id.month);
 
         electricityWalletToday.setText(todaySum);
         electricityWalletMonthly.setText(monthlySum);
@@ -148,7 +147,7 @@ public class WalletDetails extends AppCompatActivity {
             e.printStackTrace();
         }
         TextView telecommunicationsWalletToday =(TextView) findViewById(R.id.today);
-        TextView telecommunicationsWalletMonthly =(TextView) findViewById(R.id.monthly);
+        TextView telecommunicationsWalletMonthly =(TextView) findViewById(R.id.month);
 
         telecommunicationsWalletToday.setText(todaySum);
         telecommunicationsWalletMonthly.setText(monthlySum);
